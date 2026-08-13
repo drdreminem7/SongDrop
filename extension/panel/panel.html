@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SongDrop</title>
+  </head>
+  <body>
+    <main>
+      <p aria-label="SongDrop">SongDrop</p>
+
+      <section id="playlist" hidden>
+        <p>Playlist detected</p>
+        <h1 id="playlist-title">Choose where it goes</h1>
+        <button type="button" data-destination="apple_music">
+          Import into Apple Music
+        </button>
+        <button type="button" data-destination="filesystem">
+          Download playlist to SongDrop folder
+        </button>
+      </section>
+
+      <section id="status" aria-live="polite" hidden>
+        <p id="status-eyebrow">SongDrop</p>
+        <h1 id="status-title">Preparing your request</h1>
+        <p id="status-detail"></p>
+      </section>
+
+      <p id="error" role="alert" hidden></p>
+    </main>
+    <script type="module" src="panel.js"></script>
+  </body>
+</html>

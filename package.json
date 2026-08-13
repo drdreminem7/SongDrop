@@ -1,0 +1,9 @@
+{
+  "name": "songdrop-browser-extension",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:extension": "node --test extension/tests/*.test.js",
+    "check:extension": "node --check extension/service-worker.js && node --check extension/panel/panel.js"
+  }
+}

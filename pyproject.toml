@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "songdrop"
+version = "0.4.3"
+description = "Prepare legally downloadable online audio and import it into Apple Music."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "SongDrop contributors" }]
+dependencies = [
+  "fastapi>=0.116,<1",
+  "mutagen>=1.47,<2",
+  "pydantic>=2.9,<3",
+  "typer>=0.12,<1",
+  "uvicorn>=0.35,<1",
+  "yt-dlp>=2025.1.15",
+  "yt-dlp-ejs>=0.8,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx>=0.28,<1",
+  "mypy>=1.14,<2",
+  "pytest>=8.3,<9",
+  "ruff>=0.9,<1",
+]
+
+[project.scripts]
+songdrop = "songdrop.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/songdrop"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["songdrop"]
+mypy_path = "src"
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["mutagen.*", "yt_dlp.*"]
+ignore_missing_imports = true
