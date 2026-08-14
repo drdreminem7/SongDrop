@@ -18,10 +18,12 @@ from songdrop.api_models import (
     JobView,
     SessionResult,
 )
+from songdrop.browser import EXTENSION_ID, EXTENSION_ORIGIN, extension_origin_variants
 from songdrop.services.jobs import JobManager, JobQueueFull, validate_job_url
 
-_EXTENSION_ID = "golnlibblfmclfpbmibdgkpmejmhhofg"
-_EXTENSION_ORIGIN = f"chrome-extension://{_EXTENSION_ID}"
+# Kept as aliases for compatibility with existing integrations and tests.
+_EXTENSION_ID = EXTENSION_ID
+_EXTENSION_ORIGIN = EXTENSION_ORIGIN
 
 
 def default_token_path() -> Path:
@@ -68,6 +70,7 @@ def create_app(
 
     job_manager = manager or JobManager()
     session_token = token or TokenStore().load_or_create()
+    allowed_origins = extension_origin_variants(allowed_origin)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -88,7 +91,7 @@ def create_app(
     )
     api.add_middleware(
         CORSMiddleware,
-        allow_origins=[allowed_origin],
+        allow_origins=list(allowed_origins),
         allow_credentials=False,
         allow_methods=["GET", "POST"],
         allow_headers=["Authorization", "Content-Type"],
@@ -97,7 +100,7 @@ def create_app(
 
     def require_extension_origin(request: Request) -> None:
         origin = request.headers.get("origin")
-        if origin != allowed_origin:
+        if origin not in allowed_origins:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="This request did not come from the SongDrop extension",

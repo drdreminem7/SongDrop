@@ -21,7 +21,25 @@ runner = CliRunner()
 def test_version_option_does_not_require_url() -> None:
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0
-    assert result.stdout.strip() == "SongDrop 0.4.3"
+    assert result.stdout.strip() == "SongDrop 0.5.0"
+
+
+def test_install_browser_helper_registers_brave_host(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    manifest = tmp_path / "Brave Profile" / "NativeMessagingHosts" / "songdrop.json"
+    monkeypatch.setattr(
+        "songdrop.native_helper.install_brave_native_host",
+        lambda: (manifest,),
+    )
+
+    result = runner.invoke(app, ["install-browser-helper"])
+
+    assert result.exit_code == 0
+    assert "browser helper installed" in result.output
+    assert str(manifest) in result.output
+    assert "Fully quit and reopen Brave" in result.output
 
 
 def test_serve_target_starts_loopback_service(

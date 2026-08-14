@@ -50,7 +50,12 @@ def configure_logging(verbose: bool) -> None:
 def download(
     target: Annotated[
         str,
-        typer.Argument(help="Track/playlist URL, or the word 'playlist', 'batch', or 'serve'."),
+        typer.Argument(
+            help=(
+                "Track/playlist URL, or 'playlist', 'batch', 'serve', or "
+                "'install-browser-helper'."
+            )
+        ),
     ],
     value: Annotated[
         str | None,
@@ -131,6 +136,17 @@ def download(
             from songdrop.api import serve
 
             serve(port=port, verbose=verbose)
+            return
+        if target.strip().casefold() == "install-browser-helper":
+            if value is not None:
+                raise CollectionFailed("Usage: songdrop install-browser-helper")
+            from songdrop.native_helper import install_brave_native_host
+
+            manifest_paths = install_brave_native_host()
+            typer.secho("SongDrop browser helper installed", fg=typer.colors.GREEN)
+            for manifest_path in manifest_paths:
+                typer.echo(f"Brave manifest: {manifest_path}")
+            typer.echo("Fully quit and reopen Brave once, then click SongDrop normally.")
             return
         config = load_config(
             output=output,

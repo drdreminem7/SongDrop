@@ -1,4 +1,6 @@
 import { ApiError, SongDropApi } from "./shared/api.js";
+import { trackedJobExists } from "./shared/jobs.js";
+import { connectWithAutostart, requestServiceStart } from "./shared/native.js";
 import { actionForUrl, classifySongDropUrl } from "./shared/urls.js";
 
 const ACTIVE_JOBS_KEY = "activeJobs";
@@ -142,8 +144,19 @@ async function submitJobOnce(url, destination, token) {
     ([, job]) => job.url === url && job.destination === destination,
   );
   if (existing) {
-    void pollSoon(existing[0]);
-    return { job_id: existing[0], status: "queued" };
+    const existingJobId = existing[0];
+    if (
+      await trackedJobExists(existingJobId, (jobId) =>
+        jobWithFreshAuthorization(jobId, token),
+      )
+    ) {
+      void pollSoon(existingJobId);
+      return { job_id: existingJobId, status: "queued" };
+    }
+    // The background API intentionally keeps jobs only in memory. If it restarted, discard the
+    // extension's stale pointer and submit this click as a fresh operation immediately.
+    await finishTracking(existingJobId);
+    delete activeJobs[existingJobId];
   }
 
   const receipt = await new SongDropApi(token).submit(url, destination);
@@ -233,11 +246,10 @@ async function storedToken() {
 }
 
 async function ensureToken() {
-  const existing = await storedToken();
-  if (existing) {
-    return existing;
-  }
-  const session = await new SongDropApi().connect();
+  const session = await connectWithAutostart(
+    () => new SongDropApi().connect(),
+    () => requestServiceStart(),
+  );
   await chrome.storage.local.set({ [TOKEN_KEY]: session.token });
   return session.token;
 }

@@ -96,6 +96,17 @@ def test_api_rejects_disallowed_unauthorized_and_unsupported_requests() -> None:
         assert unsupported.status_code == 422
 
 
+def test_api_accepts_braves_trailing_slash_extension_origin() -> None:
+    manager = JobManager(lambda request, update: ExecutionResult())
+    app = create_app(manager=manager, token="secret-token", allowed_origin=_ORIGIN)
+
+    with TestClient(app) as client:
+        connected = client.post("/v1/session", headers={"Origin": f"{_ORIGIN}/"})
+
+    assert connected.status_code == 200
+    assert connected.json() == {"token": "secret-token"}
+
+
 def test_api_allows_extension_cors_preflight_only() -> None:
     manager = JobManager(lambda request, update: ExecutionResult())
     app = create_app(manager=manager, token="secret-token", allowed_origin=_ORIGIN)

@@ -6,7 +6,56 @@ from yt_dlp.utils import DownloadError
 
 from songdrop.exceptions import DownloadFailed
 from songdrop.models import AudioFormat, DownloadOptions
-from songdrop.providers.youtube import YouTubeProvider
+from songdrop.providers.youtube import YouTubeProvider, canonical_track_url
+
+
+def test_single_track_url_discards_music_playlist_context() -> None:
+    assert canonical_track_url(
+        "https://music.youtube.com/watch?v=iYLrlxJPs9Q&list=PLkp3SEbfGIongUgdF7uf_nIq2_zfozroU"
+    ) == "https://www.youtube.com/watch?v=iYLrlxJPs9Q"
+
+
+def test_download_uses_canonical_video_url(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    extracted_urls: list[str] = []
+
+    class FakeYDL:
+        def __init__(self, options: dict[str, Any]) -> None:
+            pass
+
+        def __enter__(self) -> "FakeYDL":
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+        def extract_info(self, url: str, *, download: bool) -> dict[str, Any]:
+            extracted_urls.append(url)
+            output = tmp_path / "source.webm"
+            output.write_bytes(b"audio")
+            return {
+                "id": "iYLrlxJPs9Q",
+                "title": "Artist - Song",
+                "artist": "Artist",
+                "track": "Song",
+                "webpage_url": url,
+                "filepath": str(output),
+            }
+
+        def prepare_filename(self, info: dict[str, Any]) -> str:
+            return str(tmp_path / "source.webm")
+
+    monkeypatch.setattr("yt_dlp.YoutubeDL", FakeYDL)
+    monkeypatch.setattr(YouTubeProvider, "_base_options", staticmethod(lambda: {}))
+
+    YouTubeProvider().download(
+        "https://music.youtube.com/watch?v=iYLrlxJPs9Q&list=PL123",
+        DownloadOptions(staging_dir=tmp_path),
+    )
+
+    assert extracted_urls == ["https://www.youtube.com/watch?v=iYLrlxJPs9Q"]
 
 
 def test_transient_403_refreshes_extraction_and_retries(

@@ -63,13 +63,13 @@ export class SongDropApi {
       console.error("SongDrop local API request failed", error);
       if (error instanceof DOMException && error.name === "AbortError") {
         throw new ApiError(
-          "SongDrop did not respond. Check the Terminal window running songdrop serve.",
+          "SongDrop's local service did not respond.",
           0,
           error,
         );
       }
       throw new ApiError(
-        "Brave could not connect to SongDrop at 127.0.0.1:8765. Confirm songdrop serve is still running, then reload the extension on brave://extensions.",
+        "Brave could not connect to SongDrop at 127.0.0.1:8765.",
         0,
         error,
       );

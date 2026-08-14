@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "songdrop"
-version = "0.4.3"
+version = "0.5.0"
 description = "Prepare legally downloadable online audio and import it into Apple Music."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -30,6 +30,7 @@ dev = [
 
 [project.scripts]
 songdrop = "songdrop.cli:app"
+songdrop-native-helper = "songdrop.native_helper:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/songdrop"]

@@ -68,3 +68,7 @@ class AppleMusicImportFailed(SongDropError):
 
 class AppleMusicVerificationFailed(SongDropError):
     """Raised when an imported Music library entry cannot be safely verified."""
+
+
+class BrowserHelperFailed(SongDropError):
+    """Raised when the local browser helper cannot be installed or started."""

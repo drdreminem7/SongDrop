@@ -26,7 +26,7 @@ async function initialize() {
     statusTitle.textContent = "SongDrop could not connect";
     statusDetail.textContent =
       connection.error ??
-      "Keep songdrop serve running in Terminal, then reload the extension on brave://extensions.";
+      "Run songdrop install-browser-helper, then reload the extension on brave://extensions.";
     return;
   }
   showOnly(playlistSection);

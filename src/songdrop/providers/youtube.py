@@ -9,7 +9,7 @@ from collections.abc import Callable
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlencode, urlparse
 
 from pydantic import HttpUrl, ValidationError
 
@@ -370,7 +370,7 @@ class YouTubeProvider(MediaProvider, CollectionProvider):
 
         try:
             with YoutubeDL(self._base_options()) as ydl:
-                info = ydl.extract_info(url, download=False)
+                info = ydl.extract_info(canonical_track_url(url), download=False)
         except DownloadError as error:
             raise MetadataFailed(f"Could not retrieve metadata: {error}") from error
         except Exception as error:
@@ -397,10 +397,11 @@ class YouTubeProvider(MediaProvider, CollectionProvider):
                 "outtmpl": str(staging_dir / "source.%(ext)s"),
             }
         )
+        download_url = canonical_track_url(url)
         for attempt in range(1, self.download_attempts + 1):
             try:
                 with YoutubeDL(ydl_options) as ydl:
-                    info = ydl.extract_info(url, download=True)
+                    info = ydl.extract_info(download_url, download=True)
                     if not isinstance(info, dict):
                         raise DownloadFailed("YouTube did not return download information.")
                     downloaded_path = self._downloaded_path(info, ydl, staging_dir)
@@ -493,6 +494,21 @@ def is_explicit_playlist_url(url: str) -> bool:
         and parsed.path.rstrip("/") == "/playlist"
         and _playlist_id(url)
     )
+
+
+def canonical_track_url(url: str) -> str:
+    """Remove playlist and Music-page context from one supported video URL.
+
+    A YouTube Music watch URL containing ``list`` can otherwise enter yt-dlp's tab/playlist
+    extractor even when ``noplaylist`` is enabled. Resolving the immutable video ID to a plain
+    watch URL keeps single-track actions on the video extractor and avoids context-specific,
+    short-lived media URLs.
+    """
+
+    source_id = YouTubeProvider().source_id(url)
+    if source_id is None:
+        return url
+    return f"https://www.youtube.com/watch?{urlencode({'v': source_id})}"
 
 
 def _playlist_id(url: str) -> str | None:

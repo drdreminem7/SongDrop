@@ -45,19 +45,36 @@ After a successful normal import, `~/Downloads/SongDrop` is empty. SongDrop does
 
 ## Brave browser extension
 
-Install SongDrop in the Python environment first, then start its local companion service:
+Install SongDrop in the Python environment, then register its local Brave helper once:
 
 ```bash
 cd /path/to/SongDrop
 source .venv/bin/activate
-songdrop serve
+songdrop install-browser-helper
 ```
 
-Keep this Terminal process running while using the extension. It listens only on
-`http://127.0.0.1:8765`. No pairing code or manual connection step is required. The known
-SongDrop extension origin receives a local bearer credential automatically; other extension and
-website origins are rejected. SongDrop bounds its in-memory queue and forgets completed job status
-after one hour. It does not record a persistent download history.
+Fully quit and reopen Brave once after registration so its browser process discovers the new
+native host. Reloading only the extension is not sufficient on every Brave version. After that,
+no Terminal process needs to remain open. Each extension action first connects to
+`http://127.0.0.1:8765`. If SongDrop is already running, the request goes straight to it. If it is
+unavailable, Brave invokes the registered native helper, which starts `songdrop serve` in the
+background, waits for its health endpoint, and then submits the request normally. Background
+service output is written to:
+
+```text
+~/Library/Logs/SongDrop/service.log
+```
+
+The installer writes the same origin-restricted manifest to Brave's branded native-host directory
+and Chromium's Google Chrome compatibility directory. Brave releases have used both macOS lookup
+locations; neither manifest permits websites or unrelated extensions to launch SongDrop.
+
+The native helper is restricted to the fixed SongDrop extension ID and accepts only the action to
+ensure the loopback service is running; it cannot run browser-supplied commands. No pairing code
+or manual connection step is required. The known SongDrop extension origin receives a local bearer
+credential automatically; other extension and website origins are rejected. SongDrop bounds its
+in-memory queue and forgets completed job status after one hour. It does not record a persistent
+download history.
 
 Load the extension in Brave:
 
@@ -66,6 +83,10 @@ Load the extension in Brave:
 3. Choose **Load unpacked**.
 4. Select this repository's `extension` directory.
 5. Pin SongDrop to the toolbar.
+
+If the unpacked extension is reloaded after an update, run `songdrop install-browser-helper` again
+only if Brave reports that the native host is unavailable. SongDrop's checked-in extension key
+keeps its extension ID stable.
 
 Clicking SongDrop on a normal YouTube or YouTube Music track immediately queues the track for Apple
 Music. It does not ask for a destination. An explicit `/playlist?list=...` page is the only normal

@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
   "name": "SongDrop",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "description": "Send supported YouTube audio to the local SongDrop service.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAukCyAJsCgXg2VO7Kb9IITvuYdpzRDjkH4EjKo8jLe6qg9cARB35TxmGVctL8ZcrqzBSqepyuO5LyyibynsXtSn41Rb/mpR+vCZFdJMBPormanFfvlM4ms3piNuUqesLvufZeAvK8KToRgD7YEhZt1HDuJ2TiPaZAP9Aq9Nlm3Yh3rYzk8M252MSc2AgYRAEmxUp4Th/CKtpZhAzq25adSVz2PXtNfjcvOVgYlsoUrzCpZWX27xB0yJyceio/N67Sw1nWUaPTt3tq1ll6ZckgqwSEQA+yr8rmMn8UxEAL/q32MKfpBrh4EvN3vw+fFRTV0fmBQS3tKGdpAPa+gdHRlwIDAQAB",
   "minimum_chrome_version": "109",
-  "permissions": ["activeTab", "alarms", "notifications", "storage"],
+  "permissions": ["activeTab", "alarms", "nativeMessaging", "notifications", "storage"],
   "host_permissions": ["http://127.0.0.1:8765/*"],
   "background": {
     "service_worker": "service-worker.js",
